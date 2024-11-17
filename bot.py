@@ -19,7 +19,7 @@ async def on_ready():
         print("Channel not found!")
 
 # Run the bot
-bot.run(os.getenv('BOT_TOKEN'))
+bot.run(os.getenv('DISCORD_TOKEN'))
 
 # Scheduler to run tasks at specific times
 scheduler = AsyncIOScheduler()
