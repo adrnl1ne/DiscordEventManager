@@ -41,6 +41,7 @@ def load_last_execution_dates():
 
 # Function to save last execution dates to a JSON file
 def save_last_execution_dates(last_poll_date, last_notification_date):
+    logger.info("Saving last execution dates to JSON")  # Debugging output
     with open('last_execution_dates.json', 'w') as f:
         json.dump({
             'last_poll_date': last_poll_date.strftime('%Y-%m-%d') if last_poll_date else None,
@@ -67,6 +68,7 @@ async def create_poll(channel):
             await poll_message.add_reaction(chr(127462 + i))  # Adding emojis as reactions
         logger.info("Poll sent to channel.")
         last_poll_date = datetime.now().date()  # Update the last poll date
+        logger.info(f"Updating last_poll_date to {last_poll_date}")  # Debugging output
         save_last_execution_dates(last_poll_date, last_notification_date)  # Save to JSON
     except Exception as e:
         logger.error(f"An error occurred while sending the poll: {e}")
@@ -78,6 +80,7 @@ async def send_wednesday_notification(channel):
         await channel.send("Reminder: Don't forget to check out the poll and participate!")
         logger.info("Wednesday notification sent to channel.")
         last_notification_date = datetime.now().date()  # Update the last notification date
+        logger.info(f"Updating last_notification_date to {last_notification_date}")  # Debugging output
         save_last_execution_dates(last_poll_date, last_notification_date)  # Save to JSON
     except Exception as e:
         logger.error(f"An error occurred while sending the Wednesday notification: {e}")
@@ -121,8 +124,7 @@ async def on_ready():
         try:
             await channel.send("Daily reminder: Stay active and engaged!")
             logger.info("Daily notification sent to channel.")
-            last_notification_date = datetime.now().date()  # Update the last notification date
-            save_last_execution_dates(last_poll_date, last_notification_date)  # Save to JSON
+
         except Exception as e:
             logger.error(f"An error occurred while sending the daily notification: {e}")
 
