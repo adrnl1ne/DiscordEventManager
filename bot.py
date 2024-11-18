@@ -26,7 +26,7 @@ poll_question = "Can You Attend?"
 poll_options = ["Yes", "No"]
 
 # Set your desired timezone
-tz = timezone('Denmark')  # Change to your desired timezone
+tz = timezone('Europe/Copenhagen')  # Correct timezone for Denmark
 
 # Function to create the poll
 async def create_poll():
