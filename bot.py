@@ -27,14 +27,30 @@ poll_options = ["Yes", "No"]
 def load_last_execution_dates():
     try:
         with open('last_execution_dates.json', 'r') as f:
-            return json.load(f)
+            data = json.load(f)
+            # Convert string dates to datetime.date objects
+            last_poll_date = datetime.strptime(data['last_poll_date'], '%Y-%m-%d').date() if data['last_poll_date'] else None
+            last_notification_date = datetime.strptime(data['last_notification_date'], '%Y-%m-%d').date() if data['last_notification_date'] else None
+            return {'last_poll_date': last_poll_date, 'last_notification_date': last_notification_date}
     except (FileNotFoundError, json.JSONDecodeError):
         return {'last_poll_date': None, 'last_notification_date': None}
 
 # Function to save last execution dates to a JSON file
 def save_last_execution_dates(last_poll_date, last_notification_date):
     with open('last_execution_dates.json', 'w') as f:
-        json.dump({'last_poll_date': last_poll_date, 'last_notification_date': last_notification_date}, f)
+        json.dump({
+            'last_poll_date': last_poll_date.strftime('%Y-%m-%d') if last_poll_date else None,
+            'last_notification_date': last_notification_date.strftime('%Y-%m-%d') if last_notification_date else None
+        }, f)
+
+# Function to initialize the JSON file with default values
+def initialize_execution_dates():
+    default_data = {
+        'last_poll_date': None,
+        'last_notification_date': None
+    }
+    with open('last_execution_dates.json', 'w') as f:
+        json.dump(default_data, f)
 
 # Function to create the poll
 async def create_poll(channel):
@@ -74,6 +90,10 @@ async def on_ready():
     if channel is None:
         logger.error("Channel not found. Please check the CHANNEL_ID.")
         return
+
+    # Initialize the JSON file if it doesn't exist
+    if not os.path.exists('last_execution_dates.json'):
+        initialize_execution_dates()  # Create the file with default values
 
     # Load last execution dates
     execution_dates = load_last_execution_dates()
