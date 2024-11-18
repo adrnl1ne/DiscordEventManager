@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from pytz import timezone
 
 # Load environment variables from .env file
 load_dotenv()
@@ -23,6 +24,9 @@ scheduler = AsyncIOScheduler()
 # Poll content for Monday
 poll_question = "Can You Attend?"
 poll_options = ["Yes", "No"]
+
+# Set your desired timezone
+tz = timezone('Denmark')  # Change to your desired timezone
 
 # Function to create the poll
 async def create_poll():
@@ -64,10 +68,10 @@ async def send_wednesday_notification():
 
 # Function to schedule tasks
 def schedule_tasks():
-    # Create a poll every Monday at 10:00 AM
-    scheduler.add_job(create_poll, 'cron', day_of_week='mon', hour=10, minute=0)
-    # Send a notification every Wednesday at 10:00 AM
-    scheduler.add_job(send_wednesday_notification, 'cron', day_of_week='wed', hour=10, minute=0)
+    # Create a poll every Monday at 10:00 AM in the specified timezone
+    scheduler.add_job(create_poll, 'cron', day_of_week='mon', hour=10, minute=0, timezone=tz)
+    # Send a notification every Wednesday at 10:00 AM in the specified timezone
+    scheduler.add_job(send_wednesday_notification, 'cron', day_of_week='wed', hour=18, minute=0, timezone=tz)
 
 @bot.event
 async def on_ready():
