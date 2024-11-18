@@ -23,6 +23,10 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 poll_question = "Can You Attend?"
 poll_options = ["Yes", "No"]
 
+# Global variables to track last execution dates
+last_poll_date = None
+last_notification_date = None
+
 # Function to load last execution dates from a JSON file
 def load_last_execution_dates():
     try:
@@ -54,7 +58,7 @@ def initialize_execution_dates():
 
 # Function to create the poll
 async def create_poll(channel):
-    global last_poll_date
+    global last_poll_date  # Declare as global to modify the variable
     try:
         # Create the poll message
         poll_message = await channel.send(f"{poll_question}\n" + "\n".join([f"{i + 1}. {option}" for i, option in enumerate(poll_options)]))
@@ -69,7 +73,7 @@ async def create_poll(channel):
 
 # Function to send a notification on Wednesday
 async def send_wednesday_notification(channel):
-    global last_notification_date
+    global last_notification_date  # Declare as global to modify the variable
     try:
         await channel.send("Reminder: Don't forget to check out the poll and participate!")
         logger.info("Wednesday notification sent to channel.")
@@ -80,6 +84,7 @@ async def send_wednesday_notification(channel):
 
 @bot.event
 async def on_ready():
+    global last_poll_date, last_notification_date  # Declare as global to modify the variables
     logger.info(f'Logged in as {bot.user}')
     channel_id = os.getenv('CHANNEL_ID')
     if channel_id is None:
@@ -112,7 +117,7 @@ async def on_ready():
         await send_wednesday_notification(channel)  # Send the Wednesday notification when the bot starts
 
     async def send_daily_notification(channel):
-        global last_notification_date
+        global last_notification_date  # Declare as global to modify the variable
         try:
             await channel.send("Daily reminder: Stay active and engaged!")
             logger.info("Daily notification sent to channel.")
@@ -124,6 +129,7 @@ async def on_ready():
     # Check if it's 12:00 PM UTC+1 (12:00 AM UTC) and send the daily notification
     if datetime.now().strftime('%H:%M') == '12:00':
         await send_daily_notification(channel)  # Send the daily notification when the bot starts
+        
     # Add a delay of 5 minutes before shutting down the bot
     await asyncio.sleep(300)
     await bot.close()
