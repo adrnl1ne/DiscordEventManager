@@ -12,11 +12,13 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
-    channel = bot.get_channel(int(os.getenv('CHANNEL_ID')))
+    channel_id = os.getenv('CHANNEL_ID')
+    print("CHANNEL_ID:", channel_id)  # Debugging line
+    channel = bot.get_channel(int(channel_id)) if channel_id else None
     if channel:
         await channel.send('Hello, I am your bot!')
     else:
-        print("Channel not found!")
+        print("Channel not found or CHANNEL_ID is not set!")
 
 # Run the bot
 bot.run(os.getenv('DISCORD_TOKEN'))
