@@ -62,6 +62,12 @@ async def on_ready():
     if current_day == 'Monday':
         await create_poll(channel)  # Create the poll immediately when the bot starts
 
+    # Create a test message for every day at 12
+    if current_day == 'Monday' or current_day == 'Tuesday' or current_day == 'Wednesday' or current_day == 'Thursday' or current_day == 'Friday' or current_day == 'Saturday' or current_day == 'Sunday':
+        scheduler = AsyncIOScheduler()
+        scheduler.add_job(lambda: channel.send("This is a test message sent at 12 PM every day."), 'cron', day_of_week=current_day, hour=12)
+        scheduler.start()
+    
     # Send the notification only on Wednesdays
     if current_day == 'Wednesday':
         await send_wednesday_notification(channel)  # Send the Wednesday notification when the bot starts
