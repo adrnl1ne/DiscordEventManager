@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 import asyncio  # Import asyncio for delay functionality
 import json  # Import JSON for data persistence
+from datetime import datetime, timedelta
 
 # Load environment variables from .env file
 load_dotenv()
@@ -57,21 +58,50 @@ def initialize_execution_dates():
     with open('last_execution_dates.json', 'w') as f:
         json.dump(default_data, f)
 
+
+# Function to calculate the next Wednesday
+def get_next_wednesday():
+    today = datetime.now()
+    days_ahead = (2 - today.weekday()) % 7  # 2 represents Wednesday (Monday is 0)
+    if days_ahead == 0:  # If today is already Wednesday, get the next one
+        days_ahead = 7
+    next_wednesday = today + timedelta(days=days_ahead)
+    return next_wednesday.strftime("%A, %B %d, %Y")  # Format as 'Wednesday, Month Day, Year'
+
 # Function to create the poll
 async def create_poll(channel):
     global last_poll_date  # Declare as global to modify the variable
     try:
-        # Create the poll message
-        poll_message = await channel.send(f"{poll_question}\n" + "\n".join([f"{i + 1}. {option}" for i, option in enumerate(poll_options)]))
+        # Define the emojis
+        emojis = ["👍", "👎"]
+        
+        # Calculate next Wednesday's date
+        next_wednesday = get_next_wednesday()
+        
+        # Create the poll message with the date
+        poll_message = await channel.send(
+            f"**{poll_question}**\n\n"  # Bold the question
+            f"📅 **Next Practice Date:** {next_wednesday}\n\n"  # Include the date
+            + "\n\n".join([f"{emojis[i]} **{poll_options[i]}**" for i in range(len(poll_options))])  # Add new line between options
+        )
+        
         # Add reactions for each option
-        for i in range(len(poll_options)):
-            await poll_message.add_reaction(chr(127462 + i))  # Adding emojis as reactions
+        for emoji in emojis:
+            await poll_message.add_reaction(emoji)
+        
         logger.info("Poll sent to channel.")
-        last_poll_date = datetime.now().date()  # Update the last poll date
+        
+        # Update the last poll date
+        last_poll_date = datetime.now().date()
         logger.info(f"Updating last_poll_date to {last_poll_date}")  # Debugging output
-        save_last_execution_dates(last_poll_date, last_notification_date)  # Save to JSON
+        
+        # Save to JSON
+        save_last_execution_dates(last_poll_date, last_notification_date)
     except Exception as e:
         logger.error(f"An error occurred while sending the poll: {e}")
+
+
+
 
 # Function to send a notification on Wednesday
 async def send_wednesday_notification(channel):
