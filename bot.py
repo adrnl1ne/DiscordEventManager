@@ -3,6 +3,8 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 import logging
+from datetime import datetime
+import asyncio  # Import asyncio for delay functionality
 
 # Load environment variables from .env file
 load_dotenv()
@@ -53,9 +55,20 @@ async def on_ready():
         logger.error("Channel not found. Please check the CHANNEL_ID.")
         return
 
-    # Call the create_poll function to create the poll when the bot is ready
-    await create_poll(channel)  # Create the poll immediately when the bot starts
-    await send_wednesday_notification(channel)  # Send the Wednesday notification when the bot starts
+    # Get the current day of the week
+    current_day = datetime.now().strftime('%A')  # Get the current day as a string (e.g., 'Monday')
+
+    # Create the poll only on Mondays
+    if current_day == 'Monday':
+        await create_poll(channel)  # Create the poll immediately when the bot starts
+
+    # Send the notification only on Wednesdays
+    if current_day == 'Wednesday':
+        await send_wednesday_notification(channel)  # Send the Wednesday notification when the bot starts
+
+    # Add a delay of 15 minutes before shutting down the bot
+    await asyncio.sleep(900)
+    await bot.close()
 
 # Run the bot
 bot.run(os.getenv('DISCORD_TOKEN'))
