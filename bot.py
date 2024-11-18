@@ -119,18 +119,6 @@ async def on_ready():
     if datetime.now().strftime('%A') == 'Wednesday' and (last_notification_date is None or last_notification_date < current_date):
         await send_wednesday_notification(channel)  # Send the Wednesday notification when the bot starts
 
-    async def send_daily_notification(channel):
-        global last_notification_date  # Declare as global to modify the variable
-        try:
-            await channel.send("Daily reminder: Stay active and engaged!")
-            logger.info("Daily notification sent to channel.")
-
-        except Exception as e:
-            logger.error(f"An error occurred while sending the daily notification: {e}")
-
-    # Check if it's 12:00 PM UTC+1 (12:00 AM UTC) and send the daily notification
-    if datetime.now().strftime('%H:%M') == '12:15':
-        await send_daily_notification(channel)  # Send the daily notification when the bot starts
         
     # Add a delay of 5 minutes before shutting down the bot
     await asyncio.sleep(300)
