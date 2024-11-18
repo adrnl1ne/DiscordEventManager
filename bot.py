@@ -129,7 +129,7 @@ async def on_ready():
             logger.error(f"An error occurred while sending the daily notification: {e}")
 
     # Check if it's 12:00 PM UTC+1 (12:00 AM UTC) and send the daily notification
-    if datetime.now().strftime('%H:%M') == '12:00':
+    if datetime.now().strftime('%H:%M') == '12:15':
         await send_daily_notification(channel)  # Send the daily notification when the bot starts
         
     # Add a delay of 5 minutes before shutting down the bot
