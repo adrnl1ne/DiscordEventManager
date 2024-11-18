@@ -31,6 +31,7 @@ jobs:
       - name: Run Discord Bot
         run: python bot.py
         env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
 
       - name: Commit changes
