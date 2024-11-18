@@ -4,9 +4,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import datetime
 import os  # Add this import at the top of the file
 
-# Create bot instance
+# Create bot instance with privileged intents
 intents = discord.Intents.default()
-intents.message_content = True  # Needed to read and send messages
+intents.message_content = True  # Enable the message content intent
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
