@@ -78,10 +78,12 @@ async def create_poll(channel):
         # Calculate next Wednesday's date
         next_wednesday = get_next_wednesday()
         
-        # Create the poll message with the date
+        # Create the poll message with the date, time, and number of games
         poll_message = await channel.send(
             f"**{poll_question}**\n\n"  # Bold the question
-            f"📅 **Next Practice Date:** {next_wednesday}\n\n"  # Include the date
+            f"📅 **Next Practice Date:** {next_wednesday}\n"
+            f"⏰ **Time:** 19:30\n"
+            f"🎮 **Number of Games:** 3\n\n"
             + "\n\n".join([f"{emojis[i]} **{poll_options[i]}**" for i in range(len(poll_options))])  # Add new line between options
         )
         
@@ -99,8 +101,6 @@ async def create_poll(channel):
         save_last_execution_dates(last_poll_date, last_notification_date)
     except Exception as e:
         logger.error(f"An error occurred while sending the poll: {e}")
-
-
 
 
 # Function to send a notification on Wednesday
