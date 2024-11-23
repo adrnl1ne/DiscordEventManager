@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 intents = discord.Intents.default()
 intents.message_content = True  # Enable the message content intent
 bot = commands.Bot(command_prefix="!", intents=intents)
+if not intents.message_content:
+    logger.warning("message_content intent is disabled; bot may not function fully.")
+
 
 # Poll content for Monday
 poll_question = "Can You Attend?"
@@ -37,8 +40,12 @@ def load_last_execution_dates():
             last_poll_date = datetime.strptime(data['last_poll_date'], '%Y-%m-%d').date() if data['last_poll_date'] else None
             last_notification_date = datetime.strptime(data['last_notification_date'], '%Y-%m-%d').date() if data['last_notification_date'] else None
             return {'last_poll_date': last_poll_date, 'last_notification_date': last_notification_date}
-    except (FileNotFoundError, json.JSONDecodeError):
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logger.error(f"Error loading execution dates: {e}")
         return {'last_poll_date': None, 'last_notification_date': None}
+
+
+
 
 # Function to save last execution dates to a JSON file
 def save_last_execution_dates(last_poll_date, last_notification_date):
@@ -75,6 +82,9 @@ async def create_poll(channel):
         # Define the emojis
         emojis = ["👍", "👎"]
         
+         # Check that the number of emojis matches the number of poll options
+        assert len(emojis) == len(poll_options), "Mismatch between emojis and poll options."
+
         # Calculate next Wednesday's date
         next_wednesday = get_next_wednesday()
         
@@ -100,7 +110,8 @@ async def create_poll(channel):
         # Save to JSON
         save_last_execution_dates(last_poll_date, last_notification_date)
     except Exception as e:
-        logger.error(f"An error occurred while sending the poll: {e}")
+        logger.error(f"An error occurred while sending the poll: {e}. Channel: {channel.id}")
+
 
 
 # Function to send a notification on Wednesday
@@ -117,6 +128,10 @@ async def send_wednesday_notification(channel):
 
 @bot.event
 async def on_ready():
+    if not os.getenv('DISCORD_TOKEN') or not os.getenv('CHANNEL_ID'):
+        logger.error("Missing DISCORD_TOKEN or CHANNEL_ID in environment variables.")
+        return
+
     global last_poll_date, last_notification_date  # Declare as global to modify the variables
     logger.info(f'Logged in as {bot.user}')
     channel_id = os.getenv('CHANNEL_ID')
@@ -126,8 +141,9 @@ async def on_ready():
 
     channel = bot.get_channel(int(channel_id))
     if channel is None:
-        logger.error("Channel not found. Please check the CHANNEL_ID.")
+        logger.error(f"Channel with ID {channel_id} not found or bot lacks permission.")
         return
+
 
     # Initialize the JSON file if it doesn't exist
     if not os.path.exists('last_execution_dates.json'):
@@ -151,8 +167,13 @@ async def on_ready():
 
         
     # Add a delay of 5 minutes before shutting down the bot
-    await asyncio.sleep(300)
+    asyncio.create_task(shutdown_after_delay(300))
+
+async def shutdown_after_delay(delay):
+    await asyncio.sleep(delay)
+    logger.info("Shutting down the bot after delay.")
     await bot.close()
+
 
 # Run the bot
 bot.run(os.getenv('DISCORD_TOKEN'))
