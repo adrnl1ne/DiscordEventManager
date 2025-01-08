@@ -3,10 +3,9 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import asyncio  # Import asyncio for delay functionality
 import json  # Import JSON for data persistence
-from datetime import datetime, timedelta
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,7 +20,6 @@ intents.message_content = True  # Enable the message content intent
 bot = commands.Bot(command_prefix="!", intents=intents)
 if not intents.message_content:
     logger.warning("message_content intent is disabled; bot may not function fully.")
-
 
 # Poll content for Monday
 poll_question = "Can You Attend?"
@@ -44,9 +42,6 @@ def load_last_execution_dates():
         logger.error(f"Error loading execution dates: {e}")
         return {'last_poll_date': None, 'last_notification_date': None}
 
-
-
-
 # Function to save last execution dates to a JSON file
 def save_last_execution_dates(last_poll_date, last_notification_date):
     logger.info("Saving last execution dates to JSON")  # Debugging output
@@ -65,15 +60,14 @@ def initialize_execution_dates():
     with open('last_execution_dates.json', 'w') as f:
         json.dump(default_data, f)
 
-
-# Function to calculate the next Wednesday
-def get_next_wednesday():
+# Function to calculate the next Thursday
+def get_next_thursday():
     today = datetime.now()
-    days_ahead = (2 - today.weekday()) % 7  # 2 represents Wednesday (Monday is 0)
-    if days_ahead == 0:  # If today is already Wednesday, get the next one
+    days_ahead = (3 - today.weekday()) % 7  # 3 represents Thursday (Monday is 0)
+    if days_ahead == 0:  # If today is already Thursday, get the next one
         days_ahead = 7
-    next_wednesday = today + timedelta(days=days_ahead)
-    return next_wednesday.strftime("%A, %B %d, %Y")  # Format as 'Wednesday, Month Day, Year'
+    next_thursday = today + timedelta(days=days_ahead)
+    return next_thursday.strftime("%A, %B %d, %Y")  # Format as 'Thursday, Month Day, Year'
 
 # Function to create the poll
 async def create_poll(channel):
@@ -85,13 +79,13 @@ async def create_poll(channel):
          # Check that the number of emojis matches the number of poll options
         assert len(emojis) == len(poll_options), "Mismatch between emojis and poll options."
 
-        # Calculate next Wednesday's date
-        next_wednesday = get_next_wednesday()
+        # Calculate next Thursday's date
+        next_thursday = get_next_thursday()
         
         # Create the poll message with the date, time, and number of games
         poll_message = await channel.send(
             f"**{poll_question}**\n\n"  # Bold the question
-            f"📅 **Next Practice Date:** {next_wednesday}\n"
+            f"📅 **Next Practice Date:** {next_thursday}\n"
             f"⏰ **Time:** 19:30\n"
             f"🎮 **Number of Games:** 3\n\n"
             + "\n\n".join([f"{emojis[i]} **{poll_options[i]}**" for i in range(len(poll_options))])  # Add new line between options
@@ -112,19 +106,17 @@ async def create_poll(channel):
     except Exception as e:
         logger.error(f"An error occurred while sending the poll: {e}. Channel: {channel.id}")
 
-
-
-# Function to send a notification on Wednesday
-async def send_wednesday_notification(channel):
+# Function to send a notification on Thursday
+async def send_thursday_notification(channel):
     global last_notification_date  # Declare as global to modify the variable
     try:
         await channel.send("Reminder: Don't forget to check out the poll and participate!")
-        logger.info("Wednesday notification sent to channel.")
+        logger.info("Thursday notification sent to channel.")
         last_notification_date = datetime.now().date()  # Update the last notification date
         logger.info(f"Updating last_notification_date to {last_notification_date}")  # Debugging output
         save_last_execution_dates(last_poll_date, last_notification_date)  # Save to JSON
     except Exception as e:
-        logger.error(f"An error occurred while sending the Wednesday notification: {e}")
+        logger.error(f"An error occurred while sending the Thursday notification: {e}")
 
 @bot.event
 async def on_ready():
@@ -144,7 +136,6 @@ async def on_ready():
         logger.error(f"Channel with ID {channel_id} not found or bot lacks permission.")
         return
 
-
     # Initialize the JSON file if it doesn't exist
     if not os.path.exists('last_execution_dates.json'):
         initialize_execution_dates()  # Create the file with default values
@@ -161,11 +152,10 @@ async def on_ready():
     if datetime.now().strftime('%A') == 'Monday' and (last_poll_date is None or last_poll_date < current_date):
         await create_poll(channel)  # Create the poll immediately when the bot starts
 
-    # Send the notification only on Wednesdays and if it hasn't been sent today
-    if datetime.now().strftime('%A') == 'Wednesday' and (last_notification_date is None or last_notification_date < current_date):
-        await send_wednesday_notification(channel)  # Send the Wednesday notification when the bot starts
+    # Send the notification only on Thursdays and if it hasn't been sent today
+    if datetime.now().strftime('%A') == 'Thursday' and (last_notification_date is None or last_notification_date < current_date):
+        await send_thursday_notification(channel)  # Send the Thursday notification when the bot starts
 
-        
     # Add a delay of 5 minutes before shutting down the bot
     asyncio.create_task(shutdown_after_delay(300))
 
@@ -174,7 +164,5 @@ async def shutdown_after_delay(delay):
     logger.info("Shutting down the bot after delay.")
     await bot.close()
 
-
 # Run the bot
 bot.run(os.getenv('DISCORD_TOKEN'))
-
