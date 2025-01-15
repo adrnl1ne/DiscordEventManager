@@ -4,18 +4,18 @@ on:
   schedule:
     - cron: '0 9 * * 1'  # Every Monday at 10:00 AM UTC+1 (9:00 AM UTC)
     - cron: '0 15 * * 4'  # Every Thursday at 6:00 PM UTC+1 (5:00 PM UTC)
-      push:
-        branches:
-          - main
-      workflow_dispatch:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
-    jobs:
-      run-bot:
-        runs-on: ubuntu-latest
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
 
-        steps:
-          - name: Checkout code
-            uses: actions/checkout@v2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -35,15 +35,13 @@ on:
 
       - name: Commit changes
         run: |
-          git config --local user.email "${{ secrets.GIT_USER_EMAIL }}"
+          git config --local user.email "${{ secrets.GIT_USER_EMAIL}}"
           git config --local user.name "GitHub Action"
           git add last_execution_dates.json
           if ! git diff --cached --quiet; then
             git commit -m "Update last execution dates"
-            git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/adrnl1ne/DiscordEventManager.git HEAD:main
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/adrnl1ne/DiscordEventManager.git HEAD:main
           else
             echo "No changes to commit"
-          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
