@@ -86,7 +86,7 @@ async def create_poll(channel):
         poll_message = await channel.send(
             f"**{poll_question}**\n\n"  # Bold the question
             f"📅 **Next Practice Date:** {next_thursday}\n"
-            f"⏰ **Time:** 19:30\n"
+            f"⏰ **Time:** 19:00\n"
             f"🎮 **Number of Games:** 3\n\n"
             + "\n\n".join([f"{emojis[i]} **{poll_options[i]}**" for i in range(len(poll_options))])  # Add new line between options
         )
